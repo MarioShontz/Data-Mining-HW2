@@ -320,152 +320,39 @@ def question5():
 
 
 # ----------------------------------------------------------------------
-    weight_loss_right_splits = [[1, 2], [0, 2]]  # Example values for right_class_amounts
-    level2_right["weight_loss"] = u.split_purity(weight_loss_right_splits)
-    level2_right["weight_loss_info_gain"] = u.information_gain(right_class_amounts, weight_loss_right_splits)
-
-    # Level 2 Right - Cough
-    level2_right["cough"] = -1.
-    level2_right["cough_info_gain"] = -1.
-    
-    answer["level1"] = level1
-    answer["level2_left"] = level2_left
-    answer["level2_right"] = level2_right
-
-
-    # Fill up `construct_tree``
-    # tree, training_error = construct_tree()
-    #
-    #              Smoking
-    #             /  \
-    #            /    \  
-    #           /      \
-    #          /        \
-    #       Cough      Radon
-    #        / \        / \
-    #       /   \      /   \
-    #     "y"   "n"  "y"   "n"
-
-    #where the left path implies "yes" and the right one is "no"
-    tree = u.BinaryTree("smoking")
-    A = tree.insert_left("cough")
-    B = tree.insert_right("radon")
-    # Four leaves
-    A.insert_left("y")
-    A.insert_right("n")
-    B.insert_left("y")
-    B.insert_right("n")
-    answer["tree"] = tree  # use the Tree structure
-    # answer["training_error"] = training_error
-    answer["training_error"] = 0. # 100% accurate on training data
-
-    return answer
-
-
-# ----------------------------------------------------------------------
-
-
-def question2():
+def question6():
     answer = {}
+    # Level 1
+    answer["a, level 1"] = "y <= 0.4"
 
-    A = 0.41
-    B = 0.46
-    C = 0.13
-    dataset_probs = [A, B, C]
-    # Answers are floats
-    answer["(a) entropy_entire_data"] = u.purity(dataset_probs, probabilistic=True)
-    # Infogain
-    # x <= 0.2
-    split_sizes = [0.2, 0.8]
-    splits = [[0., 0.8, 0.2], [0.5125, 0.375, 0.1125]]
-    answer["(b) x <= 0.2"] = u.information_gain(dataset_probs, splits, probabilistic=True, split_sizes = split_sizes)
-    # x <= 0.7
-    split_sizes = [0.7, 0.3]
-    splits = [[0.2857142857, 0.6571428571, 0.05714285714], [0.4, 0.3, 0.3]]
-    answer["(b) x <= 0.7"] = u.information_gain(dataset_probs, splits, probabilistic=True, split_sizes = split_sizes)
-
-    # y <= 0.6
-    split_sizes = [0.6, 0.4]
-    splits = [[.15, .7, .15], [.8, .1, .1]]
-    answer["(b) y <= 0.6"] = u.information_gain(dataset_probs, splits, probabilistic=True, split_sizes = split_sizes)
-
-    # choose one of 'x=0.2', 'x=0.7', or 'x=0.6'
-    answer["(c) attribute"] = "y=0.6"
-
-
-
-    #              y<=0.6
-    #             /  \
-    #            /    \
-    #           /      \
-    #          /        \
-    #       x<=0.7     x<=0.2
-    #        / \        / \
-    #       /   \      /   \
-    #      /     \    /     \
-    #     /       \  /       \
-    #   "B"  "y<=0.30.y<=0.80.A"
-    #           / \   / \  
-    #          /   \ /   \
-    #        "A" "C" "C" "B"
-
-    # Assume left means "true" and right means "false"
-    # Leaves are always strings
-    # Use the Binary Tree structure to construct the tree
-    # Answer is an instance of BinaryTree
-    tree = u.BinaryTree("y<=0.6")
-    W = tree.insert_left("x<=0.7")
-    W.insert_left("B")
-    X = W.insert_right("y<=0.3")
-
-    X.insert_left("A")
-    X.insert_right("C")
-
-    Y = tree.insert_right("x<=0.2")
-    Y.insert_right("A")
-    Z = Y.insert_left("y<=0.8")    
-
-    Z.insert_left("C")
-    Z.insert_right("B")
-
-    answer["(d) full decision tree"] = tree
-
-    return answer
-
-
-# ----------------------------------------------------------------------
-
-
-def question3():
-    answer = {}
-
-    # float
-    overall = [10,10]
-    answer["(a) Gini, overall"] = u.purity(overall, method="gini")
-
-    # float
-    id_splits = [[1, 0]]*10 + [[0, 1]]*10
-    answer["(b) Gini, ID"] = u.split_purity(id_splits, method="gini")
+    # Level 2, right
+    # After the first split, the right branch (y > 0.4) would have both class A and class B
+    # A good split here seems to be along the X-axis at x <= 0.5 to separate class B from class A
+    answer["a, level 2, right"] = "x <= 0.5"
     
-    gender_splits = [[6,4],[4,6]]
-    answer["(c) Gini, Gender"] = u.split_purity(gender_splits, method="gini")
+    # Level 2, left
+    # The left branch (y <= 0.4) is purely class A, so it becomes a leaf node
+    answer["a, level 2, left"] = "A"
 
-    car_type_splits = [[1,3],[8,0],[1,7]]
-    answer["(d) Gini, Car type"] = u.split_purity(car_type_splits, method="gini")
+    # There are no level 3 splits since it's a 2-level tree
+    answer["a, level 3, left"] = "A"  # Leaf node, since the left split of level 2 was already class A
+    answer["a, level 3, right"] = "B"  # Leaf node, the right split of level 2, right branch is class B
 
-    shirt_size_splits = [[3,2],[3,4],[2,2],[2,2]]
-    answer["(e) Gini, Shirt type"] = u.split_purity(shirt_size_splits, method="gini")
+    # Compute the expected error rate
+    # We will compute the misclassified area. All areas are correctly classified except the top left corner, which is 0.5 * 0.3
+    answer["b, expected error"] = 0.5 * 0.3  # Area of the top left rectangle
 
-
-    answer["(f) attr for splitting"] = "ID"
-
-    # Explanatory text string
-    answer["(f) explain choice"] = """While not really a great choice, if one
-    is only interested in the choice the minimizes the gini, separating it
-    by ID gets the job done the best. Of course, a more intelligent option would
-    not just call every data point a cluster, i.e. to separate by Car Type."""
+    # Constructing the decision tree using utils.BinaryTree
+    tree = u.BinaryTree("y <= 0.4")
+    tree.insert_left("A")  # Class A for y <= 0.4
+    right_node = tree.insert_right("x <= 0.5")
+    right_node.insert_left("B")  # Class B for x <= 0.5 on the right side of the tree
+    right_node.insert_right("A")  # Class A for x > 0.5 on the right side of the tree
+    
+    answer["c, tree"] = tree
 
     return answer
+
 
 # ----------------------------------------------------------------------
 def question7():
