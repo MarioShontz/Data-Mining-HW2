@@ -23,46 +23,77 @@ def question1():
     level2_left = {}
     level2_right = {}
 
-    level1["smoking"] = u.entropy2d(5,5)
-    level1["smoking_info_gain"] = u.information_gain_split(5,5,4,1,1,4, "entropy")
+    # Smoking attribute
+    original_class_amounts = [5, 5]
+    smoking_splits = [[4, 1], [1, 4]]
+    level1["smoking"] = u.split_purity(smoking_splits)
+    level1["smoking_info_gain"] = u.information_gain(original_class_amounts, smoking_splits)
 
+    # Cough attribute
+    cough_splits = [[4, 3], [1, 2]]
+    level1["cough"] = u.split_purity(cough_splits)
+    level1["cough_info_gain"] = u.information_gain(original_class_amounts, cough_splits)
 
-    level1["cough"] = u.entropy2d(5,5)
-    level1["cough_info_gain"] = u.information_gain_split(5,5,4,3,1,2, "entropy")
+    # Radon attribute
+    radon_splits = [[2, 0], [3, 5]]
+    level1["radon"] = u.split_purity(radon_splits)
+    level1["radon_info_gain"] = u.information_gain(original_class_amounts, radon_splits)
 
-    level1["radon"] = u.entropy2d(5,5)
-    level1["radon_info_gain"] = u.information_gain_split(5,5,2,0,3,5, "entropy")
+    # Weight Loss attribute
+    weight_loss_splits = [[3, 2], [2, 3]]
+    level1["weight_loss"] = u.split_purity(weight_loss_splits)
+    level1["weight_loss_info_gain"] = u.information_gain(original_class_amounts, weight_loss_splits)
 
-    level1["weight_loss"] = u.entropy2d(5,5)
-    level1["weight_loss_info_gain"] = u.information_gain_split(5,5,3,2,2,3, "entropy")
-
+    #use smoking splits for level 2
+    left_class_amounts = [4, 1]
+    right_class_amounts = [1, 4]
+    # Level 2 Left - Smoking
     level2_left["smoking"] = -1.
     level2_left["smoking_info_gain"] = -1.
 
+    # Level 2 Right - Smoking
     level2_right["smoking"] = -1.
     level2_right["smoking_info_gain"] = -1.
 
-    level2_left["radon"] = u.entropy2d(4,1)
-    level2_left["radon_info_gain"] = u.information_gain_split(4,1,1,0,3,1, "entropy")
+    # Assuming `u` refers to the utilities module with your defined functions
 
-    level2_left["cough"] = u.entropy2d(4,1)
-    level2_left["cough_info_gain"] = u.information_gain_split(4,1,4,0,0,1, "entropy")
+    # Level 2 Left - Radon
+    radon_left_splits = [[1, 0], [3, 1]]
+    level2_left["radon"] = u.split_purity(radon_left_splits)
+    level2_left["radon_info_gain"] = u.information_gain(left_class_amounts, radon_left_splits)
 
-    level2_left["weight_loss"] = u.entropy2d(4,1)
-    level2_left["weight_loss_info_gain"] = u.information_gain_split(4,1,2,0,2,1, "entropy")
+    # Level 2 Left - Cough
+    # Here, we need to define cough splits for the left side; assuming the placeholder `_splits` meant this:
+    cough_left_splits = [[4, 0], [0, 1]]  # Assuming example values based on left_class_amounts
+    level2_left["cough"] = u.split_purity(cough_left_splits)
+    level2_left["cough_info_gain"] = u.information_gain(left_class_amounts, cough_left_splits)
 
-    level2_right["radon"] = u.entropy2d(1,4)
-    level2_right["radon_info_gain"] = u.information_gain_split(1,4,1,0,0,4, "entropy")
+    # Level 2 Left - Weight Loss
+    # Assuming example values for weight loss splits on the left side
+    weight_loss_left_splits = [[2, 0], [2, 1]]  # Assuming example values based on left_class_amounts
+    level2_left["weight_loss"] = u.split_purity(weight_loss_left_splits)
+    level2_left["weight_loss_info_gain"] = u.information_gain(left_class_amounts, weight_loss_left_splits)
 
+    # Level 2 Right - Radon
+    # Assuming radon splits for the right side need to be defined similarly:
+    radon_right_splits = [[1, 0], [0, 4]]  # Example values for right_class_amounts
+    level2_right["radon"] = u.split_purity(radon_right_splits)
+    level2_right["radon_info_gain"] = u.information_gain(right_class_amounts, radon_right_splits)
+
+    # Level 2 Right - Weight Loss
+    # Assuming weight loss splits for the right side:
+    weight_loss_right_splits = [[1, 2], [0, 2]]  # Example values for right_class_amounts
+    level2_right["weight_loss"] = u.split_purity(weight_loss_right_splits)
+    level2_right["weight_loss_info_gain"] = u.information_gain(right_class_amounts, weight_loss_right_splits)
+
+    # Level 2 Right - Cough
     level2_right["cough"] = -1.
     level2_right["cough_info_gain"] = -1.
-
-    level2_right["weight_loss"] = u.entropy2d(1,4)
-    level2_right["weight_loss_info_gain"] = u.information_gain_split(1,4,1,2,0,2, "entropy")
-
+    
     answer["level1"] = level1
     answer["level2_left"] = level2_left
     answer["level2_right"] = level2_right
+
 
     # Fill up `construct_tree``
     # tree, training_error = construct_tree()
@@ -88,7 +119,7 @@ def question1():
     B.insert_right("n")
     answer["tree"] = tree  # use the Tree structure
     # answer["training_error"] = training_error
-    answer["training_error"] = 0.0 # 100% accurate on training data
+    answer["training_error"] = 0. # 100% accurate on training data
 
     return answer
 
@@ -102,16 +133,24 @@ def question2():
     A = 0.41
     B = 0.46
     C = 0.13
+    dataset_probs = [A, B, C]
     # Answers are floats
-    answer["(a) entropy_entire_data"] = u.entropy_probs_3d(A, B, C)
+    answer["(a) entropy_entire_data"] = u.purity(dataset_probs, probabilistic=True)
     # Infogain
-    answer["(b) x <= 0.2"] = u.information_gain_probs_3d(0.2,0.8,A,B,C, 0., .8, .2, .5125, .375, .1125)
-    answer["(b) x <= 0.7"] = u.information_gain_probs_3d(0.7,0.3,A,B,C, .2857142857, .6571428571, 0.05714285714, .4, 0.3, 0.3)
-    answer["(b) y <= 0.6"] = u.information_gain_probs_3d(0.6,0.4,A,B,C, .15, .7, .15, .8, .1, .1)
-    print("layer 1")
-    print(answer["(b) x <= 0.2"])
-    print(answer["(b) x <= 0.7"])
-    print(answer["(b) y <= 0.6"])
+    # x <= 0.2
+    split_sizes = [0.2, 0.8]
+    splits = [[0., 0.8, 0.2], [0.5125, 0.375, 0.1125]]
+    answer["(b) x <= 0.2"] = u.information_gain(dataset_probs, splits, probabilistic=True, split_sizes = split_sizes)
+    # x <= 0.7
+    split_sizes = [0.7, 0.3]
+    splits = [[0.2857142857, 0.6571428571, 0.05714285714], [0.4, 0.3, 0.3]]
+    answer["(b) x <= 0.7"] = u.information_gain(dataset_probs, splits, probabilistic=True, split_sizes = split_sizes)
+
+    # y <= 0.6
+    split_sizes = [0.6, 0.4]
+    splits = [[.15, .7, .15], [.8, .1, .1]]
+    answer["(b) y <= 0.6"] = u.information_gain(dataset_probs, splits, probabilistic=True, split_sizes = split_sizes)
+
     # choose one of 'x=0.2', 'x=0.7', or 'x=0.6'
     answer["(c) attribute"] = "y=0.6"
 
@@ -127,10 +166,10 @@ def question2():
     #       /   \      /   \
     #      /     \    /     \
     #     /       \  /       \
-    #   "B"  "y<=0.3""y<=0.8""A"
+    #   "B"  "y<=0.30.y<=0.80.A"
     #           / \   / \  
-    #          /   \  /   \
-    #        "A"  "C" "C"  "B"
+    #          /   \ /   \
+    #        "A" "C" "C" "B"
 
     # Assume left means "true" and right means "false"
     # Leaves are always strings
@@ -163,18 +202,30 @@ def question3():
     answer = {}
 
     # float
-    answer["(a) Gini, overall"] = 0.
+    overall = [10,10]
+    answer["(a) Gini, overall"] = u.purity(overall, method="gini")
 
     # float
-    answer["(b) Gini, ID"] = 0.0
-    answer["(c) Gini, Gender"] = 0.
-    answer["(d) Gini, Car type"] = 0.
-    answer["(e) Gini, Shirt type"] = 0.
+    id_splits = [[1, 0]]*10 + [[0, 1]]*10
+    answer["(b) Gini, ID"] = u.split_purity(id_splits, method="gini")
+    
+    gender_splits = [[6,4],[4,6]]
+    answer["(c) Gini, Gender"] = u.split_purity(gender_splits, method="gini")
 
-    answer["(f) attr for splitting"] = ""
+    car_type_splits = [[1,3],[8,0],[1,7]]
+    answer["(d) Gini, Car type"] = u.split_purity(car_type_splits, method="gini")
+
+    shirt_size_splits = [[3,2],[3,4],[2,2],[2,2]]
+    answer["(e) Gini, Shirt type"] = u.split_purity(shirt_size_splits, method="gini")
+
+
+    answer["(f) attr for splitting"] = "ID"
 
     # Explanatory text string
-    answer["(f) explain choice"] = ""
+    answer["(f) explain choice"] = """While not really a great choice, if one
+    is only interested in the choice the minimizes the gini, separating it
+    by ID gets the job done the best. Of course, a more intelligent option would
+    not just call every data point a cluster, i.e. to separate by Car Type."""
 
     return answer
 
@@ -195,46 +246,44 @@ def question4():
     #  'quantitative', 'interval', 'ratio'
     # If you have a choice between 'binary' and 'discrete', choose 'binary'
 
-    answer["a"] = []
+    answer["a"] = ["binary", "qualitative", "nominal"]
+    answer["a: explain"] = "Time in AM or PM is binary (two distinct categories) and nominal without inherent order."
 
-    # Explain if there is more than one interpretation. Repeat for the other questions. At least five words that form a sentence.
-    answer["a: explain"] = ""
+    answer["b"] = ["continuous", "quantitative", "ratio"]
+    answer["b: explain"] = "Brightness measured by a light meter can vary continuously and has a true zero, making it a ratio."
 
-    answer["b"] = []
-    answer["b: explain"] = ""
+    answer["c"] = ["discrete", "qualitative", "ordinal"]
+    answer["c: explain"] = "Peoples' judgments of brightness are subjective, ranked but not measured precisely, hence ordinal."
 
-    answer["c"] = []
-    answer["c: explain"] = ""
+    answer["d"] = ["continuous", "quantitative", "interval"]
+    answer["d: explain"] = "Angles in degrees have a meaningful scale but no true zero, making them interval."
 
-    answer["d"] = []
-    answer["d: explain"] = ""
+    answer["e"] = ["discrete", "qualitative", "ordinal"]
+    answer["e: explain"] = "Medals have a clear ordering (gold is higher than silver, and silver is higher than bronze) but are not numeric."
 
-    answer["e"] = []
-    answer["e: explain"] = ""
+    answer["f"] = ["continuous", "quantitative", "ratio"]
+    answer["f: explain"] = "Height above sea level can vary continuously and has a true zero point."
 
-    answer["f"] = []
-    answer["f: explain"] = ""
+    answer["g"] = ["discrete", "quantitative", "ratio"]
+    answer["g: explain"] = "Number of patients is a countable quantity with a true zero, making it a ratio."
 
-    answer["g"] = []
-    answer["g: explain"] = ""
+    answer["h"] = ["discrete", "qualitative", "nominal"]
+    answer["h: explain"] = "ISBN numbers categorize books uniquely without a numeric value or order, making them nominal."
 
-    answer["h"] = []
-    answer["h: explain"] = ""
+    answer["i"] = ["discrete", "qualitative", "ordinal"]
+    answer["i: explain"] = "The ability to pass light has a clear order (transparent > translucent > opaque) but is not numeric."
 
-    answer["i"] = []
-    answer["i: explain"] = ""
+    answer["j"] = ["discrete", "qualitative", "ordinal"]
+    answer["j: explain"] = "Military rank has a clear hierarchy (ordering) but is not measured quantitatively."
 
-    answer["j"] = []
-    answer["j: explain"] = ""
+    answer["k"] = ["continuous", "quantitative", "ratio"]
+    answer["k: explain"] = "Distance can vary continuously and has a true zero, making it a ratio."
 
-    answer["k"] = []
-    answer["k: explain"] = ""
+    answer["l"] = ["continuous", "quantitative", "ratio"]
+    answer["l: explain"] = "Density is a continuous measure with a true zero, categorized as a ratio."
 
-    answer["l"] = []
-    answer["l: explain"] = ""
-
-    answer["m"] = []
-    answer["m: explain"] = ""
+    answer["m"] = ["discrete", "quantitative", "ordinal"]
+    answer["m: explain"] = "Coat check numbers are unique identifiers but also follow an order; however, the number itself doesn't hold quantitative value beyond order."
 
     return answer
 
@@ -248,18 +297,24 @@ def question5():
     # Read appropriate section of book chapter 3
 
     # string: one of 'Model 1' or 'Model 2'
-    explain["a"] = ""
-    explain["a explain"] = ""
+    explain["a"] = "Model 2"
+    explain["a explain"] = "Model 2 performs better on unseen data (Dataset B) \
+    and also performs more similarly to the training data (Dataset A)."
+    
+    explain["b"] = "Model 1"
+    explain["b explain"] = "Despite Model 2 having slightly less variance in performance between training and testing, " \
+    "Model 1 shows higher overall accuracy when tested on the entire dataset (A+B), suggesting it may generalize better overall."
 
-    # string: one of 'Model 1' or 'Model 2'
-    explain["b"] = ""
-    explain["b explain"] = ""
+    # For part (c)
+    explain["c similarity"] = "Both consider model complexity."
+    explain["c similarity explain"] = "Both MDL and the pessimistic error estimate are methods that take into account " \
+    "the complexity of the model when evaluating its performance, helping to avoid overfitting by penalizing overly complex models."
 
-    explain["c similarity"] = ""
-    explain["c similarity explain"] = ""
-
-    explain["c difference"] = ""
-    explain["c difference explain"] = ""
+    explain["c difference"] = "MDL focuses on the total description length, while pessimistic error estimate adjusts the tree's error rate."
+    explain["c difference explain"] = "MDL incorporates model complexity by considering the total description length " \
+    "of the model and the data it describes, aiming for a balance between model simplicity and fit to the data. " \
+    "In contrast, the pessimistic error estimate directly adjusts the error rate of the decision tree based on its complexity, " \
+    "typically by adding a penalty for the number of leaves or nodes, which may lead to pruning of the tree."
 
     return explain
 
@@ -273,11 +328,11 @@ def question6():
     # value of the form "z <= float" where "z" is "x" or "y"
     #  and "float" is a floating point number (notice: <=)
     # The value could also be "A" or "B" if it is a leaf
-    answer["a, level 1"] = ""
-    answer["a, level 2, right"] =""
-    answer["a, level 2, left"] = ""
-    answer["a, level 3, left"] = ""
-    answer["a, level 3, right"] = ""
+    answer["a, level 1"] = 0.
+    answer["a, level 2, right"] =0.
+    answer["a, level 2, left"] = 0.
+    answer["a, level 3, left"] = 0.
+    answer["a, level 3, right"] = 0.
 
     # run each datum through the tree. Count the number of errors and divide by number of samples. .
     # Since we have areas: calculate the area that is misclassified (total area is unity)
@@ -302,7 +357,7 @@ def question7():
     answer["b, info gain, Handedness"] = 0.
 
     # string: "ID" or "Handedness"
-    answer["c, which attrib"] = ""
+    answer["c, which attrib"] = 0.
 
     # answer is a float
     answer["d, gain ratio, ID"] = 0.
@@ -310,7 +365,7 @@ def question7():
 
     # string: one of 'ID' or 'Handedness' based on gain ratio
     # choose the attribute with the largest gain ratio
-    answer["f, which attrib"] = ""
+    answer["f, which attrib"] = 0.
 
     return answer
 

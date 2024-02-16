@@ -18,65 +18,108 @@ def load_dict(filenm, dct):
     with open(filenm, "rb") as file:
         loaded_data = pickle.load(file)
         return loaded_data
-    raise "load_dict:: Error loading data"
-
-def entropy2d(nb_y, nb_n)->float:
-    ntot = nb_y + nb_n
-    E = -(nb_y/ntot * log2(nb_y/ntot) + nb_n/ntot * log2(nb_n/ntot))
-    return E
-
-def entropy_probs_3d(prob_a, prob_b, prob_c)->float:
-    E = -(prob_a * log2(prob_a) + prob_b * log2(prob_b) + prob_c * log2(prob_c))
-    return E
-
-def gini(nb_y, nb_n)->float:
-    ntot = nb_y + nb_n
-    G = 1 - (nb_y/ntot)**2 - (nb_n/ntot)**2
-    return G
-
-def information_gain_split(nb_y, nb_n, nb_y_left, nb_n_left, nb_y_right, nb_n_right, method)->float:
+    
+def purity(class_nums, method="entropy", probabilistic=False):
+    '''
+    Inputs:
+    - class_nums: list of integers, where each integer represents the number of instances of a classc
+    - method: string, either "entropy" or "gini"
+    - probabilistic: boolean, whether class_nums are probabilities or counts
+    Outputs:
+    - float, the purity of the class_nums
+    '''
+    if not probabilistic:
+        total = sum(class_nums)
+        probs = [val / total for val in class_nums] if total > 0 else [0] * len(class_nums)
+    else:
+        probs = class_nums  # Assuming class_nums are already probabilities
+    
     if method == "entropy":
-        E = entropy2d(nb_y, nb_n)
-        E_left = entropy2d(nb_y_left, nb_n_left)
-        E_right = entropy2d(nb_y_right, nb_n_right)
-        E_tot = E - (nb_y_left + nb_n_left)/(nb_y + nb_n) * E_left - (nb_y_right + nb_n_right)/(nb_y + nb_n) * E_right
-        return E_tot
+        return -sum(prob * log2(prob) for prob in probs if prob > 0)  # Ensure no log2(0)
     elif method == "gini":
-        G = gini(nb_y, nb_n)
-        G_left = gini(nb_y_left, nb_n_left)
-        G_right = gini(nb_y_right, nb_n_right)
-        G_tot = G - (nb_y_left + nb_n_left)/(nb_y + nb_n) * G_left - (nb_y_right + nb_n_right)/(nb_y + nb_n) * G_right
-        return G_tot
+        return 1 - sum(prob**2 for prob in probs)
     else:
-        raise "Information Gain: method not recognized"
-
-def information_gain_probs_3d(size_left,size_right,prob_a, prob_b, prob_c, prob_a_left, prob_b_left, prob_c_left, prob_a_right, prob_b_right, prob_c_right)->float:
-    # Calculate the total entropy before the split
-    E = entropy_probs_3d(prob_a, prob_b, prob_c)
+        raise ValueError("Purity method not recognized")
     
-    # Calculate the entropy of the left and right partitions
-    E_left = entropy_probs_3d(prob_a_left, prob_b_left, prob_c_left)
-    E_right = entropy_probs_3d(prob_a_right, prob_b_right, prob_c_right)
-        
-    # Calculate the weighted average of the entropies after the split
-    weighted_entropy_after = (size_left * E_left) + (size_right * E_right)
-    
-    # Calculate the information gain
-    gain = E - weighted_entropy_after
-    return gain
+def split_purity(splits_class_amounts, method="entropy", probabilistic=False, split_sizes=None):
+    '''
+    Calculates the weighted purity (either entropy or Gini) for a given split.
 
+    Inputs:
+    - splits_class_amounts: list of lists of integers or floats, where each sublist represents the counts (or probabilities if probabilistic=True) of each class for a specific split
+    - method: string, either "entropy" or "gini", to specify the method used for calculating purity
+    - probabilistic: boolean, indicating whether splits_class_amounts are given as probabilities (True) or counts (False)
+    - split_sizes: list of floats, representing the relative size of each split (required if probabilistic=True)
 
-
-
-def gain_ratio(nb_y, nb_n, nb_y_left, nb_n_left, nb_y_right, nb_n_right, method)->float:
-    if method == "entropy":
-        gain_split = information_gain_split(nb_y, nb_n, nb_y_left, nb_n_left, nb_y_right, nb_n_right, method)
-        split_info = -((nb_y_left + nb_n_left)/(nb_y + nb_n) * log2((nb_y_left + nb_n_left)/(nb_y + nb_n)) + (nb_y_right + nb_n_right)/(nb_y + nb_n) * log2((nb_y_right + nb_n_right)/(nb_y + nb_n)))
-        gain_ratio = gain_split/split_info
-        return gain_ratio
+    Outputs:
+    - float, the weighted purity (entropy or Gini) of the given split
+    '''
+    if not probabilistic or split_sizes is None:
+        total_instances = sum([sum(split) for split in splits_class_amounts])
     else:
-        raise "Information Gain: method not recognized"
+        total_instances = sum(split_sizes)
+    
+    weighted_purity = 0
+    for idx, split in enumerate(splits_class_amounts):
+        split_purity_value = purity(split, method, probabilistic)
+        if not probabilistic or split_sizes is None:
+            weight = sum(split) / total_instances
+        else:
+            weight = split_sizes[idx] / total_instances
+        weighted_purity += weight * split_purity_value
+    return weighted_purity
 
+
+
+
+def information_gain(original_class_amounts, splits_class_amounts, method="entropy", probabilistic=False, split_sizes=None):
+    '''
+    Calculates the information gain of a split, using either entropy or Gini index as the purity measure.
+
+    Inputs:
+    - original_class_amounts: list of integers or floats, representing the counts (or probabilities if probabilistic=True) of each class before the split
+    - splits_class_amounts: list of lists of integers or floats, where each sublist represents the counts (or probabilities) of each class for a specific split
+    - method: string, either "entropy" or "gini", to specify the method used for calculating purity
+    - probabilistic: boolean, indicating whether class_nums are given as probabilities (True) or counts (False)
+    - split_sizes: list of floats, representing the relative size of each split (required if probabilistic=True)
+
+    Outputs:
+    - float, the information gain from splitting the original dataset into the provided splits
+    '''
+    original_purity = purity(original_class_amounts, method, probabilistic)
+    splits_purity = split_purity(splits_class_amounts, method, probabilistic, split_sizes)
+    return original_purity - splits_purity
+
+
+def gain_ratio(original_class_amounts, splits_class_amounts, method="entropy", probabilistic=False, split_sizes=None):
+    '''
+    Calculates the gain ratio of a split.
+
+    Inputs:
+    - original_class_amounts: list of integers or floats, representing the counts (or probabilities if probabilistic=True) of each class before the split
+    - splits_class_amounts: list of lists of integers or floats, where each sublist represents the counts (or probabilities) of each class for a specific split
+    - method: string, either "entropy" or "gini", to specify the method used for calculating purity
+    - probabilistic: boolean, indicating whether class_nums are given as probabilities (True) or counts (False)
+
+    Outputs:
+    - float, the gain ratio, calculated as the information gain divided by the split information of the dataset split
+    '''
+    # Calculate information gain
+    info_gain = information_gain(original_class_amounts, splits_class_amounts, method, probabilistic, split_sizes)
+    
+    # Calculate SplitInfo, ensuring compatibility with probabilistic inputs
+    total_instances = sum([sum(split) for split in splits_class_amounts])
+    split_info = 0
+    for split in splits_class_amounts:
+        split_proportion = sum(split) / total_instances
+        if split_proportion > 0:
+            split_info -= split_proportion * log2(split_proportion)
+
+    # Avoid division by zero in case split_info is 0
+    if split_info == 0:
+        return 0
+    
+    return info_gain / split_info
 
 class BinaryTree:
     def __init__(self, value):
