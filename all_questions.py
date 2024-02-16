@@ -144,12 +144,12 @@ def question2():
     # x <= 0.7
     split_sizes = [0.7, 0.3]
     splits = [[0.2857142857, 0.6571428571, 0.05714285714], [0.4, 0.3, 0.3]]
-    answer["(b) x <= 0.7"] = u.information_gain(dataset_probs, splits, probabilistic=True, split_sizes = split_sizes)
+    answer["(b) x < 0.7"] = u.information_gain(dataset_probs, splits, probabilistic=True, split_sizes = split_sizes)
 
     # y <= 0.6
     split_sizes = [0.6, 0.4]
     splits = [[.15, .7, .15], [.8, .1, .1]]
-    answer["(b) y <= 0.6"] = u.information_gain(dataset_probs, splits, probabilistic=True, split_sizes = split_sizes)
+    answer["(b) y < 0.6"] = u.information_gain(dataset_probs, splits, probabilistic=True, split_sizes = split_sizes)
 
     # choose one of 'x=0.2', 'x=0.7', or 'x=0.6'
     answer["(c) attribute"] = "y=0.6"
