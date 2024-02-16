@@ -326,23 +326,18 @@ def question6():
     answer["a, level 1"] = "y <= 0.4"
 
     # Level 2, right
-    # After the first split, the right branch (y > 0.4) would have both class A and class B
-    # A good split here seems to be along the X-axis at x <= 0.5 to separate class B from class A
     answer["a, level 2, right"] = "x <= 0.5"
     
     # Level 2, left
-    # The left branch (y <= 0.4) is purely class A, so it becomes a leaf node
     answer["a, level 2, left"] = "A"
 
     # There are no level 3 splits since it's a 2-level tree
-    answer["a, level 3, left"] = "A"  # Leaf node, since the left split of level 2 was already class A
-    answer["a, level 3, right"] = "B"  # Leaf node, the right split of level 2, right branch is class B
+    answer["a, level 3, left"] = "A"  
+    answer["a, level 3, right"] = "B" 
 
     # Compute the expected error rate
-    # We will compute the misclassified area. All areas are correctly classified except the top left corner, which is 0.5 * 0.3
     answer["b, expected error"] = 0.5 * 0.3  # Area of the top left rectangle
 
-    # Constructing the decision tree using utils.BinaryTree
     tree = u.BinaryTree("y <= 0.4")
     tree.insert_left("A")  # Class A for y <= 0.4
     right_node = tree.insert_right("x <= 0.5")
@@ -359,19 +354,24 @@ def question7():
     answer = {}
 
     # float
-    answer["a, info gain, ID"] = 0.
-    answer["b, info gain, Handedness"] = 0.
+    original_class_amounts = [10,10]
+    id_splits = [[1, 0]]*10 + [[0, 1]]*10
+    answer["a, info gain, ID"] = u.information_gain(original_class_amounts, id_splits)
+    
+    left_hand_splits = [[9,1],[1,9]]
+    answer["b, info gain, Handedness"] = u.information_gain(original_class_amounts, left_hand_splits)
 
     # string: "ID" or "Handedness"
-    answer["c, which attrib"] = 0.
+    answer["c, which attrib"] = "ID"
 
     # answer is a float
-    answer["d, gain ratio, ID"] = 0.
-    answer["e, gain ratio, Handedness"] = 0.
+    answer["d, gain ratio, ID"] = u.gain_ratio(original_class_amounts, id_splits)
+    answer["e, gain ratio, Handedness"] = u.gain_ratio(original_class_amounts, left_hand_splits)
 
+    print(answer)
     # string: one of 'ID' or 'Handedness' based on gain ratio
     # choose the attribute with the largest gain ratio
-    answer["f, which attrib"] = 0.
+    answer["f, which attrib"] = "Handedness"
 
     return answer
 
