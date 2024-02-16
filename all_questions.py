@@ -140,7 +140,7 @@ def question2():
     # x <= 0.2
     split_sizes = [0.2, 0.8]
     splits = [[0., 0.8, 0.2], [0.5125, 0.375, 0.1125]]
-    answer["(b) x <= 0.2"] = u.information_gain(dataset_probs, splits, probabilistic=True, split_sizes = split_sizes)
+    answer["(b) x < 0.2"] = u.information_gain(dataset_probs, splits, probabilistic=True, split_sizes = split_sizes)
     # x <= 0.7
     split_sizes = [0.7, 0.3]
     splits = [[0.2857142857, 0.6571428571, 0.05714285714], [0.4, 0.3, 0.3]]
